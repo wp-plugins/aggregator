@@ -4,7 +4,7 @@ Donate link: http://palasthotel.de/
 Tags: aggregator, seo, javascript
 Requires at least: 4.0
 Tested up to: 4.2.2
-Stable tag: 1.0
+Stable tag: 1.0.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl
 
@@ -28,6 +28,9 @@ It's best practise to have only a very few page requests. This plugin aggregates
 
 
 == Changelog ==
+
+= 1.0.1 =
+* Separate logged in and logged out aggregation
 
 = 1.0 =
 * First release
