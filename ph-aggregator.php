@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Aggregator
  * Description: Aggregates js files.
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: PALASTHOTEL by Edward Bock
  * Author URI: http://www.palasthotel.de
  */
@@ -30,8 +30,9 @@ add_action('wp_print_scripts', 'ph_aggregator_js',9999);
 function ph_aggregator_js() {
 	/**
 	 * no compression when is admin areas are displayed
+	 * or if on login page
 	 */
-	if(is_admin()) return;
+	if(is_admin() || in_array($GLOBALS['pagenow'], array('wp-login.php', 'wp-register.php')) ) return;
 
 	/**
 	 * get options
@@ -47,7 +48,11 @@ function ph_aggregator_js() {
 	 * write js files
 	 */
 	if( $options['rewrite'] ){
-		ph_aggregator_rewrite($js_contents);
+		$success = ph_aggregator_rewrite($js_contents);
+		/**
+		 * dont use aggregator if there was an error while rewriting
+		 */
+		if(!$success) return;
 	}
 
 	/**
@@ -133,7 +138,7 @@ function ph_aggregator_script(&$options){
 					|| substr($js_src,0,1)==="/"
 					|| substr($js_src,0,1)===".")
 
-				&& (substr($js_src,strrpos($js_src,"."),3)==".js") ) {
+				&& (substr($js_src,-3)==".js") ) {
 				/**
 				 * is a locally loaded js file
 				 */
@@ -161,6 +166,7 @@ function ph_aggregator_script(&$options){
 					$js_time=filemtime($js_relative_url);
 				}
 				if ($js_time != null) {
+
 					if(!isset($scripts[$js]) || !is_array($scripts[$js]) ){
 						$scripts[$js] = array();
 					}
@@ -255,7 +261,7 @@ function ph_aggregator_get_content($js_relative_url){
  * rewrites the aggregated scripts
  */
 function ph_aggregator_rewrite($js_contents){
-	if(!is_writable(dirname(__FILE__))) return;
+	if(!is_writable(dirname(__FILE__))) return false;
 	foreach ($js_contents as $place => $content) {
 		$paths = ph_aggregator_paths($place);
 		$the_file = rtrim($paths->dir,"/")."/".$paths->file;
@@ -267,6 +273,7 @@ function ph_aggregator_rewrite($js_contents){
 		
 		ph_aggregator_purge($paths->url."/".$paths->file);
 	}
+	return true;
 }
 
 function ph_aggregator_purge($file_url){
