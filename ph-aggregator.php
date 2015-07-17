@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Aggregator
  * Description: Aggregates js files.
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author: PALASTHOTEL by Edward Bock
  * Author URI: http://www.palasthotel.de
  */
@@ -83,8 +83,8 @@ function ph_aggregator_paths($place = null){
 		$logged_in = 'logged-in-';
 	}
 	$paths = (object) array(
-		'dir' => rtrim(plugin_dir_path( __FILE__ ), "/")."/aggregated",
-		'url' => rtrim(plugins_url( '', __FILE__ ), "/")."/aggregated",
+		'dir' => rtrim(get_stylesheet_directory(), "/")."/aggregated",
+		'url' => rtrim(get_stylesheet_directory_uri(), "/")."/aggregated",
 		'file_pattern' => $logged_in.'%place%.js',
 		'file' => '',
 	);
@@ -244,7 +244,6 @@ function ph_aggregator_dequeue(&$options){
 }
 function ph_aggregator_get_content($js_relative_url){
 	$js_content="";
-	if(!is_writable(dirname(__FILE__))) return "";
 	$source_file=fopen($js_relative_url,'r');
 	if($source_file){
 		$js_content.= "/**\n * Aggregated\n * ". $js_relative_url." content:\n */\n";
@@ -261,15 +260,20 @@ function ph_aggregator_get_content($js_relative_url){
  * rewrites the aggregated scripts
  */
 function ph_aggregator_rewrite($js_contents){
-	if(!is_writable(dirname(__FILE__))) return false;
 	foreach ($js_contents as $place => $content) {
 		$paths = ph_aggregator_paths($place);
+		if(!is_dir($paths->dir)){
+			$success = mkdir($paths->dir);
+			if(!$success) return false;
+			chmod($paths->dir, 0777);
+		}
+		if(!is_writable($paths->dir)) return false;
 		$the_file = rtrim($paths->dir,"/")."/".$paths->file;
 		$aggregated_file=fopen($the_file, 'w');
 		fwrite($aggregated_file, $content);
 		fclose($aggregated_file);
 		
-		// chmod($the_file, 0666);
+		chmod($the_file, 0777);
 		
 		ph_aggregator_purge($paths->url."/".$paths->file);
 	}
