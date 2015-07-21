@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Aggregator
  * Description: Aggregates js files.
- * Version: 1.0.5
+ * Version: 1.0.6
  * Author: PALASTHOTEL by Edward Bock
  * Author URI: http://www.palasthotel.de
  */
@@ -50,9 +50,11 @@ function ph_aggregator_js() {
 	if( $options['rewrite'] ){
 		$success = ph_aggregator_rewrite($js_contents);
 		/**
-		 * dont use aggregator if there was an error while rewriting
+		 * save changes to options if no success with writing
 		 */
-		if(!$success) return;
+		if(!$success){
+			$options["rewrite"] = false;
+		}
 	}
 
 	/**
